@@ -1,0 +1,11 @@
+flowchart LR
+    A[Raw event table] --> B[remify]
+    B --> C[EventHistory]
+    C --> D[remstats]
+    D --> E[RemStats]
+    C --> F[remstimate]
+    E --> F
+    F --> G[RemEstimate]
+    H[NumPy backend] --> F
+    I[JAX CPU/GPU backend] --> F
+    G --> J[Diagnostics and model summaries]
