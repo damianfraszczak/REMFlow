@@ -1,0 +1,532 @@
+{
+  "metadata": {
+    "schema": "remflow.test_fixture",
+    "schema_version": 1,
+    "description": "Event history and actor attributes for independent GLM validation",
+    "input_hash": "5e9d5d37bb18dcbf0492742d068769ea1e5ba38a5fb51317c547ba70c81528ad"
+  },
+  "history": [
+    {
+      "time": 238,
+      "actor1": 105,
+      "actor2": 113,
+      "type": "work",
+      "weight": 1.33
+    },
+    {
+      "time": 317,
+      "actor1": 105,
+      "actor2": 109,
+      "type": "work",
+      "weight": 1.64
+    },
+    {
+      "time": 345,
+      "actor1": 115,
+      "actor2": 112,
+      "type": "work",
+      "weight": 1.82
+    },
+    {
+      "time": 627,
+      "actor1": 101,
+      "actor2": 115,
+      "type": "social",
+      "weight": 1.25
+    },
+    {
+      "time": 832,
+      "actor1": 113,
+      "actor2": 107,
+      "type": "social",
+      "weight": 1.67
+    },
+    {
+      "time": 842,
+      "actor1": 105,
+      "actor2": 109,
+      "type": "work",
+      "weight": 2.3
+    },
+    {
+      "time": 912,
+      "actor1": 113,
+      "actor2": 103,
+      "type": "social",
+      "weight": 1.29
+    },
+    {
+      "time": 959,
+      "actor1": 105,
+      "actor2": 113,
+      "type": "work",
+      "weight": 1.22
+    },
+    {
+      "time": 1045,
+      "actor1": 112,
+      "actor2": 111,
+      "type": "work",
+      "weight": 1.56
+    },
+    {
+      "time": 1607,
+      "actor1": 105,
+      "actor2": 103,
+      "type": "social",
+      "weight": 2.18
+    },
+    {
+      "time": 2657,
+      "actor1": 113,
+      "actor2": 103,
+      "type": "social",
+      "weight": 2.24
+    },
+    {
+      "time": 3135,
+      "actor1": 107,
+      "actor2": 109,
+      "type": "work",
+      "weight": 2.17
+    },
+    {
+      "time": 3243,
+      "actor1": 101,
+      "actor2": 111,
+      "type": "work",
+      "weight": 1.38
+    },
+    {
+      "time": 3713,
+      "actor1": 101,
+      "actor2": 107,
+      "type": "work",
+      "weight": 1.12
+    },
+    {
+      "time": 4297,
+      "actor1": 115,
+      "actor2": 113,
+      "type": "social",
+      "weight": 1.23
+    },
+    {
+      "time": 4338,
+      "actor1": 104,
+      "actor2": 115,
+      "type": "social",
+      "weight": 1.41
+    },
+    {
+      "time": 4446,
+      "actor1": 115,
+      "actor2": 107,
+      "type": "work",
+      "weight": 1.09
+    },
+    {
+      "time": 4578,
+      "actor1": 105,
+      "actor2": 113,
+      "type": "work",
+      "weight": 1.51
+    },
+    {
+      "time": 4628,
+      "actor1": 103,
+      "actor2": 112,
+      "type": "work",
+      "weight": 2.06
+    },
+    {
+      "time": 4649,
+      "actor1": 113,
+      "actor2": 115,
+      "type": "work",
+      "weight": 1.61
+    },
+    {
+      "time": 4751,
+      "actor1": 101,
+      "actor2": 105,
+      "type": "work",
+      "weight": 1.76
+    },
+    {
+      "time": 5029,
+      "actor1": 105,
+      "actor2": 101,
+      "type": "work",
+      "weight": 1.97
+    },
+    {
+      "time": 5129,
+      "actor1": 111,
+      "actor2": 101,
+      "type": "social",
+      "weight": 2.69
+    },
+    {
+      "time": 5174,
+      "actor1": 111,
+      "actor2": 109,
+      "type": "work",
+      "weight": 1.07
+    },
+    {
+      "time": 5835,
+      "actor1": 103,
+      "actor2": 111,
+      "type": "social",
+      "weight": 1.14
+    },
+    {
+      "time": 5856,
+      "actor1": 113,
+      "actor2": 115,
+      "type": "work",
+      "weight": 1.13
+    },
+    {
+      "time": 6276,
+      "actor1": 104,
+      "actor2": 113,
+      "type": "social",
+      "weight": 1.15
+    },
+    {
+      "time": 6488,
+      "actor1": 111,
+      "actor2": 105,
+      "type": "social",
+      "weight": 1.32
+    },
+    {
+      "time": 6861,
+      "actor1": 111,
+      "actor2": 107,
+      "type": "work",
+      "weight": 1.1
+    },
+    {
+      "time": 7493,
+      "actor1": 115,
+      "actor2": 101,
+      "type": "social",
+      "weight": 3.23
+    },
+    {
+      "time": 7626,
+      "actor1": 105,
+      "actor2": 101,
+      "type": "work",
+      "weight": 1.15
+    },
+    {
+      "time": 7902,
+      "actor1": 105,
+      "actor2": 104,
+      "type": "social",
+      "weight": 1.42
+    },
+    {
+      "time": 7990,
+      "actor1": 103,
+      "actor2": 105,
+      "type": "work",
+      "weight": 1.09
+    },
+    {
+      "time": 8199,
+      "actor1": 107,
+      "actor2": 113,
+      "type": "work",
+      "weight": 2.62
+    },
+    {
+      "time": 8206,
+      "actor1": 112,
+      "actor2": 105,
+      "type": "social",
+      "weight": 1.64
+    },
+    {
+      "time": 9234,
+      "actor1": 107,
+      "actor2": 101,
+      "type": "social",
+      "weight": 1.11
+    },
+    {
+      "time": 9251,
+      "actor1": 103,
+      "actor2": 112,
+      "type": "work",
+      "weight": 1.35
+    },
+    {
+      "time": 9270,
+      "actor1": 112,
+      "actor2": 113,
+      "type": "work",
+      "weight": 1.26
+    },
+    {
+      "time": 9276,
+      "actor1": 113,
+      "actor2": 111,
+      "type": "social",
+      "weight": 1.6
+    },
+    {
+      "time": 9316,
+      "actor1": 111,
+      "actor2": 103,
+      "type": "work",
+      "weight": 1.03
+    }
+  ],
+  "info": [
+    {
+      "name": 101,
+      "time": 0,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -0.4,
+      "agreeableness": -0.14
+    },
+    {
+      "name": 101,
+      "time": 9432,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -0.32,
+      "agreeableness": -0.26
+    },
+    {
+      "name": 101,
+      "time": 18864,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -0.53,
+      "agreeableness": -0.45
+    },
+    {
+      "name": 103,
+      "time": 0,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -0.13,
+      "agreeableness": -0.65
+    },
+    {
+      "name": 103,
+      "time": 9432,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -0.43,
+      "agreeableness": -0.44
+    },
+    {
+      "name": 103,
+      "time": 18864,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -0.13,
+      "agreeableness": -0.43
+    },
+    {
+      "name": 104,
+      "time": 0,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 0.92,
+      "agreeableness": 0.4
+    },
+    {
+      "name": 104,
+      "time": 9432,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 0.61,
+      "agreeableness": 0.4
+    },
+    {
+      "name": 104,
+      "time": 18864,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 0.41,
+      "agreeableness": 0.6
+    },
+    {
+      "name": 105,
+      "time": 0,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -2.17,
+      "agreeableness": -0.46
+    },
+    {
+      "name": 105,
+      "time": 9432,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -1.65,
+      "agreeableness": -0.81
+    },
+    {
+      "name": 105,
+      "time": 18864,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -2.09,
+      "agreeableness": -0.56
+    },
+    {
+      "name": 107,
+      "time": 0,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 0.75,
+      "agreeableness": -0.3
+    },
+    {
+      "name": 107,
+      "time": 9432,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 0.25,
+      "agreeableness": -0.28
+    },
+    {
+      "name": 107,
+      "time": 18864,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 0.92,
+      "agreeableness": -0.33
+    },
+    {
+      "name": 109,
+      "time": 0,
+      "age": 1,
+      "sex": 0,
+      "extraversion": -0.89,
+      "agreeableness": 2
+    },
+    {
+      "name": 109,
+      "time": 9432,
+      "age": 1,
+      "sex": 0,
+      "extraversion": -0.78,
+      "agreeableness": 2.13
+    },
+    {
+      "name": 109,
+      "time": 18864,
+      "age": 1,
+      "sex": 0,
+      "extraversion": -1.26,
+      "agreeableness": 1.91
+    },
+    {
+      "name": 111,
+      "time": 0,
+      "age": 1,
+      "sex": 1,
+      "extraversion": 0.03,
+      "agreeableness": -0.05
+    },
+    {
+      "name": 111,
+      "time": 9432,
+      "age": 1,
+      "sex": 1,
+      "extraversion": 0.07,
+      "agreeableness": 0.06
+    },
+    {
+      "name": 111,
+      "time": 18864,
+      "age": 1,
+      "sex": 1,
+      "extraversion": 0.07,
+      "agreeableness": -0.11
+    },
+    {
+      "name": 112,
+      "time": 0,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -0.27,
+      "agreeableness": 1.33
+    },
+    {
+      "name": 112,
+      "time": 9432,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -0.31,
+      "agreeableness": 1.26
+    },
+    {
+      "name": 112,
+      "time": 18864,
+      "age": 0,
+      "sex": 0,
+      "extraversion": -0.11,
+      "agreeableness": 1.69
+    },
+    {
+      "name": 113,
+      "time": 0,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 1.55,
+      "agreeableness": -1.21
+    },
+    {
+      "name": 113,
+      "time": 9432,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 1.98,
+      "agreeableness": -1.13
+    },
+    {
+      "name": 113,
+      "time": 18864,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 1.4,
+      "agreeableness": -1.36
+    },
+    {
+      "name": 115,
+      "time": 0,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 0.89,
+      "agreeableness": -0.75
+    },
+    {
+      "name": 115,
+      "time": 9432,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 0.92,
+      "agreeableness": -1.23
+    },
+    {
+      "name": 115,
+      "time": 18864,
+      "age": 0,
+      "sex": 0,
+      "extraversion": 0.71,
+      "agreeableness": -0.85
+    }
+  ]
+}
