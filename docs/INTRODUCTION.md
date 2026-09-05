@@ -21,11 +21,12 @@ REMFlow exposes four functions for fitting and assessing these models:
 4. `diagnostics` reports fitted probabilities, ranks, residuals, and related
    checks.
 
-`RelationalEventModel` accepts typed misinformation events and calculates actor
-role scores, echo-chamber measures, and next-event probabilities. Its
-actor-blocking method removes selected actors from the fitted next-event
-distribution and renormalizes the remaining probabilities. These quantities do
-not identify causal sources or estimate the causal effect of an intervention.
+`RelationalEventModel` is the general high-level facade for untyped and typed
+tie-oriented event models and next-event probabilities. `MisinformationModel`
+inherits from it and adds action and stance conventions, actor-role scores,
+group-similarity measures, source ranking, and actor-blocking analyses. These
+domain-specific quantities do not identify causal sources or estimate the
+causal effect of an intervention.
 
 ## Implementation choices
 

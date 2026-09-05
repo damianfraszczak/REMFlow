@@ -7,10 +7,11 @@ observed and alternative events.
 
 The package fits conditional event-choice models for ordinal data and intensity
 models for exact or duration data. It supports tie-oriented and actor-oriented
-specifications, model diagnostics, and next-event prediction. A separate
-high-level API calculates descriptive source, amplifier, and echo-chamber
-measures for typed misinformation events and evaluates actor removal in the
-conditional next-event distribution.
+specifications, model diagnostics, and next-event prediction. The general
+high-level facade supports untyped and typed tie-oriented events. A dedicated
+misinformation subclass adds descriptive actor-role and group-similarity
+measures and evaluates actor removal in the conditional next-event
+distribution.
 
 ## Installation
 
@@ -112,10 +113,11 @@ backend metadata, fitted probabilities, and the data needed by the available
 diagnostics. AIC, BIC, AICC, and WAIC are provided where their required inputs
 exist.
 
-The higher-level misinformation API works with typed actions and user-supplied
-stance or text-derived covariates. Its source and amplifier scores are
-descriptive. The intervention routine computes a conditional next-event
-counterfactual; it is not a full cascade simulator or a causal estimator.
+The general `RelationalEventModel` facade works with untyped or typed events.
+`MisinformationModel` extends it with action and stance conventions,
+descriptive actor-role scores, source ranking, echo-chamber metrics, and a
+conditional next-event intervention. The intervention is not a full cascade
+simulator or a causal estimator.
 
 ## Current limitations
 

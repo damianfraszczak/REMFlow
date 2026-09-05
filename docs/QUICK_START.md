@@ -71,7 +71,8 @@ JAX on the CPU. Reported NumPy/JAX comparisons use float64.
 ## Where to go next
 
 - The [usage guide](USAGE.md) covers actor models, duration data, sampled risk
-  sets, GPU selection, and misinformation examples.
+  sets, GPU selection, the general high-level facade, and its misinformation
+  specialization.
 - The [API reference](api.rst) lists public functions and result objects.
 - [Performance evaluation](BENCHMARKING.md) documents the benchmark commands.
 - The [classroom event study](CLASSROOM_EVENT_STUDY.md) explains the

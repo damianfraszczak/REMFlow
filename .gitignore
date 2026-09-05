@@ -9,7 +9,6 @@ __pycache__/
 .coverage
 htmlcov/
 docs/_build/
-softwarex/
 benchmark-results/
 build/
 dist/

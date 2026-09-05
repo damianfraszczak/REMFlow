@@ -1,9 +1,9 @@
-"""High-level misinformation-oriented relational event model facade."""
+"""High-level relational-event model facades."""
 
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Self
 
 import numpy as np
 import pandas as pd
@@ -19,10 +19,8 @@ from remflow.stats import (
     inertia,
     otp,
     outdegreeSender,
-    recencyReceiveReceiver,
     reciprocity,
     remstats,
-    same,
 )
 
 _EFFECT_ALIASES = {
@@ -30,19 +28,26 @@ _EFFECT_ALIASES = {
     "sender_activity": outdegreeSender,
     "receiver_popularity": indegreeReceiver,
     "triadic_closure": otp,
-    "recent_exposure": recencyReceiveReceiver,
     "inertia": inertia,
 }
 
 
 class RelationalEventModel:
-    """Fit and inspect a relational event model for information propagation.
+    """Fit and inspect a general tie-oriented relational event model.
 
     Parameters
     ----------
     effects:
         High-level aliases such as ``sender_activity`` and
         ``receiver_popularity``, or native :class:`~remflow.Effect` objects.
+    event_type:
+        Optional column containing event types. When omitted, ``event_type``
+        or ``type`` is detected automatically. Untyped events are supported.
+    event_attributes:
+        Optional event columns to preserve in the normalized history.
+    extend_riskset_by_type:
+        Whether typed risk sets contain every dyad-type combination. The
+        default enables expansion when more than one event type is observed.
     backend:
         ``numpy``, ``jax``, ``jax:cpu``, or ``jax:gpu``. A requested GPU never
         silently falls back to CPU.
@@ -64,28 +69,36 @@ class RelationalEventModel:
         ordinal: bool = False,
         directed: bool = True,
         riskset: str = "full",
+        event_type: str | None = None,
+        event_attributes: str | Sequence[str] | None = None,
+        extend_riskset_by_type: bool | None = None,
     ) -> None:
         self.effects = tuple(effects)
         self.backend = backend
         self.ordinal = ordinal
         self.directed = directed
         self.riskset = riskset
+        self.event_type = event_type
+        self.event_attributes = _attribute_names(event_attributes)
+        self.extend_riskset_by_type = extend_riskset_by_type
         self.history_: EventHistory | None = None
         self.stats_: RemStats | None = None
         self.fit_result_: RemEstimate | None = None
         self.events_: pd.DataFrame | None = None
         self._formula: Formula | None = None
         self._actor_attributes: pd.DataFrame | None = None
+        self._event_type_column: str | None = None
+        self._event_attribute_columns: tuple[str, ...] = ()
 
-    def fit(self, events: Any) -> RelationalEventModel:
+    def fit(self, events: Any) -> Self:
         """Fit the model and return ``self``."""
 
-        frame = _coerce_propagation_events(events)
-        actor_attributes = _stance_attributes(frame) if "stance" in frame.columns else None
-        model_formula = _effect_formula(self.effects, actor_attributes)
-        event_type = "action" if "action" in frame.columns else None
-        event_attributes = ["stance"] if "stance" in frame.columns else None
-        extend_types = bool(event_type and frame[event_type].nunique(dropna=True) > 1)
+        frame = self._coerce_events(events)
+        event_type = self._resolve_event_type(frame)
+        event_attributes = self._resolve_event_attributes(frame)
+        actor_attributes = self._actor_attributes_for(frame)
+        model_formula = self._effect_formula(actor_attributes)
+        extend_types = self._extend_types(frame, event_type)
         history = remify(
             frame,
             directed=self.directed,
@@ -107,7 +120,37 @@ class RelationalEventModel:
         self.fit_result_ = fitted
         self._formula = model_formula
         self._actor_attributes = actor_attributes
+        self._event_type_column = event_type
+        self._event_attribute_columns = event_attributes
         return self
+
+    def _coerce_events(self, events: Any) -> pd.DataFrame:
+        return _coerce_relational_events(events)
+
+    def _resolve_event_type(self, frame: pd.DataFrame) -> str | None:
+        if self.event_type is not None:
+            if self.event_type not in frame.columns:
+                raise ValueError(f"event type column not found: {self.event_type}")
+            return self.event_type
+        return next((name for name in ("event_type", "type") if name in frame.columns), None)
+
+    def _resolve_event_attributes(self, frame: pd.DataFrame) -> tuple[str, ...]:
+        missing = [name for name in self.event_attributes if name not in frame.columns]
+        if missing:
+            raise ValueError(f"event attribute columns not found: {missing}")
+        return self.event_attributes
+
+    def _actor_attributes_for(self, frame: pd.DataFrame) -> pd.DataFrame | None:
+        return None
+
+    def _effect_formula(self, actor_attributes: pd.DataFrame | None) -> Formula:
+        del actor_attributes
+        return _effect_formula(self.effects)
+
+    def _extend_types(self, frame: pd.DataFrame, event_type: str | None) -> bool:
+        if self.extend_riskset_by_type is not None:
+            return self.extend_riskset_by_type
+        return bool(event_type and frame[event_type].nunique(dropna=True) > 1)
 
     @property
     def coef_(self) -> np.ndarray:
@@ -127,7 +170,7 @@ class RelationalEventModel:
         return result
 
     def predict_next_events(self, top_k: int = 10) -> pd.DataFrame:
-        """Rank candidate sender-receiver-action events after the fitted history."""
+        """Rank candidate sender-receiver events after the fitted history."""
 
         if not isinstance(top_k, int) or top_k <= 0:
             raise ValueError("top_k must be a positive integer")
@@ -155,145 +198,6 @@ class RelationalEventModel:
             .reset_index(drop=True)
         )
 
-    def actor_roles(self) -> pd.DataFrame:
-        """Return transparent source, amplifier, and intermediary role scores."""
-
-        self._require_fit()
-        assert self.events_ is not None
-        actors = pd.Index(
-            pd.unique(
-                pd.concat([self.events_["sender"], self.events_["receiver"]], ignore_index=True)
-            )
-        )
-        sent = self.events_["sender"].value_counts().reindex(actors, fill_value=0).astype(float)
-        received = (
-            self.events_["receiver"].value_counts().reindex(actors, fill_value=0).astype(float)
-        )
-        total = sent + received
-        source = sent / np.maximum(total, 1.0)
-        amplifier = sent / np.maximum(received, 1.0)
-        intermediary = 2.0 * sent * received / np.maximum(total, 1.0)
-        return pd.DataFrame(
-            {
-                "actor": actors,
-                "source_score": source.to_numpy(),
-                "amplifier_score": amplifier.to_numpy(),
-                "intermediary_score": intermediary.to_numpy(),
-            }
-        ).sort_values("source_score", ascending=False, kind="stable", ignore_index=True)
-
-    def detect_sources(self, top_k: int | None = None) -> pd.DataFrame:
-        """Rank plausible cascade sources using timing and downstream reach.
-
-        This is a transparent descriptive source score, not a latent-source
-        posterior. Earlier first transmissions and larger reachable sets
-        increase the score.
-        """
-
-        self._require_fit()
-        if top_k is not None and (not isinstance(top_k, int) or top_k <= 0):
-            raise ValueError("top_k must be a positive integer or None")
-        assert self.events_ is not None
-        frame = self.events_.sort_values("time", kind="stable").reset_index(drop=True)
-        actors = list(
-            pd.unique(pd.concat([frame["sender"], frame["receiver"]], ignore_index=True))
-        )
-        first_send = frame.groupby("sender", sort=False)["time"].first()
-        first_receive = frame.groupby("receiver", sort=False)["time"].first()
-        send_order = {actor: position for position, actor in enumerate(first_send.index)}
-        denominator = max(1, len(first_send) - 1)
-        adjacency = {
-            actor: set(frame.loc[frame["sender"] == actor, "receiver"].to_list())
-            for actor in actors
-        }
-        rows: list[dict[str, Any]] = []
-        for actor in actors:
-            reach = _reachable_actors(actor, adjacency)
-            temporal = (
-                0.0
-                if actor not in send_order
-                else 1.0 - float(send_order[actor]) / denominator
-            )
-            reach_score = len(reach) / max(1, len(actors) - 1)
-            sent_at = first_send.get(actor, np.nan)
-            received_at = first_receive.get(actor, np.nan)
-            rows.append(
-                {
-                    "actor": actor,
-                    "first_send_time": sent_at,
-                    "first_receive_time": received_at,
-                    "downstream_reach": len(reach),
-                    "source_score": 0.5 * temporal + 0.5 * reach_score,
-                }
-            )
-        result = pd.DataFrame(rows).sort_values(
-            ["source_score", "first_send_time"],
-            ascending=[False, True],
-            kind="stable",
-            ignore_index=True,
-        )
-        return result if top_k is None else result.head(top_k).reset_index(drop=True)
-
-    def echo_chamber_metrics(self) -> dict[str, Any]:
-        """Measure cumulative same-stance interaction concentration over time."""
-
-        self._require_fit()
-        assert self.events_ is not None
-        if "stance" not in self.events_.columns:
-            raise ValueError("echo_chamber_metrics requires a stance column")
-        known = self.events_.loc[
-            self.events_["stance"].notna(), ["sender", "stance"]
-        ].drop_duplicates("sender", keep="last")
-        stance_by_actor = dict(zip(known["sender"], known["stance"], strict=True))
-        frame = self.events_.sort_values("time", kind="stable").copy()
-        sender_stance = frame["sender"].map(stance_by_actor)
-        receiver_stance = frame["receiver"].map(stance_by_actor)
-        valid = sender_stance.notna() & receiver_stance.notna()
-        same_stance = (sender_stance == receiver_stance) & valid
-        cross_stance = (sender_stance != receiver_stance) & valid
-        within_cumulative = same_stance.astype(int).cumsum()
-        cross_cumulative = cross_stance.astype(int).cumsum()
-        comparable = within_cumulative + cross_cumulative
-        scores = np.divide(
-            (within_cumulative - cross_cumulative).to_numpy(dtype=float),
-            comparable.to_numpy(dtype=float),
-            out=np.zeros(len(frame), dtype=float),
-            where=comparable.to_numpy() != 0,
-        )
-        trajectory = pd.DataFrame(
-            {
-                "time": frame["time"].to_numpy(),
-                "within_stance_events": within_cumulative.to_numpy(dtype=int),
-                "cross_stance_events": cross_cumulative.to_numpy(dtype=int),
-                "echo_chamber_score": scores,
-            }
-        )
-        total = int(comparable.iloc[-1]) if len(comparable) else 0
-        within = int(within_cumulative.iloc[-1]) if len(within_cumulative) else 0
-        return {
-            "echo_chamber_score": float(scores[-1]) if len(scores) else 0.0,
-            "within_stance_share": float(within / total) if total else float("nan"),
-            "comparable_events": total,
-            "trajectory": trajectory,
-        }
-
-    def simulate_intervention(self, *, blocked_actors: Sequence[Any]) -> dict[str, Any]:
-        """Remove blocked actors from the next-event distribution and renormalize."""
-
-        blocked = set(blocked_actors)
-        prediction = self.predict_next_events(top_k=max(1, self._candidate_count()))
-        removed = prediction["sender"].isin(blocked) | prediction["receiver"].isin(blocked)
-        removed_mass = float(prediction.loc[removed, "probability"].sum())
-        remaining = prediction.loc[~removed].copy()
-        mass = float(remaining["probability"].sum())
-        if mass > 0:
-            remaining["probability"] /= mass
-        return {
-            "blocked_actors": list(blocked_actors),
-            "probability_mass_removed": removed_mass,
-            "next_events": remaining.reset_index(drop=True),
-        }
-
     def _candidate_count(self) -> int:
         history, statistics = self._next_event_design()
         return len(history.risksets[statistics.event_indices[0]])
@@ -312,21 +216,22 @@ class RelationalEventModel:
             "sender": actors[0],
             "receiver": actors[1],
         }
-        if "action" in frame.columns:
-            dummy["action"] = frame["action"].dropna().iloc[0]
-        if "stance" in frame.columns:
-            dummy["stance"] = frame["stance"].dropna().iloc[-1]
+        if self._event_type_column is not None:
+            dummy[self._event_type_column] = _representative_value(
+                frame[self._event_type_column], first=True
+            )
+        for attribute in self._event_attribute_columns:
+            dummy[attribute] = _representative_value(frame[attribute], first=False)
         extended = pd.concat([frame, pd.DataFrame([dummy])], ignore_index=True)
-        event_type = "action" if "action" in extended.columns else None
         history = remify(
             extended,
             actors=actors,
             directed=self.directed,
             ordinal=self.ordinal,
             riskset=self.riskset,
-            event_type=event_type,
-            event_attributes=["stance"] if "stance" in extended.columns else None,
-            extend_riskset_by_type=bool(event_type and extended[event_type].nunique() > 1),
+            event_type=self._event_type_column,
+            event_attributes=self._event_attribute_columns,
+            extend_riskset_by_type=self._extend_types(extended, self._event_type_column),
         )
         statistics = remstats(
             history,
@@ -344,21 +249,20 @@ class RelationalEventModel:
         return self.fit_result_
 
 
-def _coerce_propagation_events(events: Any) -> pd.DataFrame:
+def _coerce_relational_events(events: Any) -> pd.DataFrame:
     if isinstance(events, pd.DataFrame):
         frame = events.copy()
     else:
         rows = list(events)
         if rows and not isinstance(rows[0], dict):
             widths = {len(row) for row in rows}
-            if len(widths) != 1 or next(iter(widths)) not in {3, 4, 5}:
-                raise ValueError("event tuples must have 3-5 fields")
-            columns = ["time", "sender", "receiver", "action", "stance"][: next(iter(widths))]
+            if len(widths) != 1 or next(iter(widths)) not in {3, 4}:
+                raise ValueError("general event tuples must have 3 or 4 fields")
+            columns = ["time", "sender", "receiver", "event_type"][: next(iter(widths))]
             frame = pd.DataFrame(rows, columns=columns)
         else:
             frame = pd.DataFrame(rows)
-    aliases = {"actor1": "sender", "actor2": "receiver", "type": "action"}
-    frame = frame.rename(columns={key: value for key, value in aliases.items() if key in frame})
+    frame = _normalize_event_columns(frame)
     required = {"time", "sender", "receiver"}
     missing = required.difference(frame.columns)
     if missing:
@@ -368,35 +272,34 @@ def _coerce_propagation_events(events: Any) -> pd.DataFrame:
     return frame.reset_index(drop=True)
 
 
-def _stance_attributes(events: pd.DataFrame) -> pd.DataFrame:
-    stances = list(pd.unique(events["stance"].dropna()))
-    codes = {value: float(index) for index, value in enumerate(stances)}
-    sender_stances = events.loc[events["stance"].notna(), ["sender", "stance"]].drop_duplicates(
-        "sender", keep="last"
-    )
-    actors = pd.Index(
-        pd.unique(pd.concat([events["sender"], events["receiver"]], ignore_index=True))
-    )
-    lookup = dict(zip(sender_stances["sender"], sender_stances["stance"], strict=True))
-    return pd.DataFrame(
-        {
-            "name": actors,
-            "stance": [codes.get(lookup.get(actor), -1.0) for actor in actors],
-        }
-    )
+def _normalize_event_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    aliases = {
+        "time": ("start_time", "event_time", "timestamp"),
+        "sender": ("actor1", "source", "from"),
+        "receiver": ("actor2", "target", "to"),
+    }
+    renamed: dict[str, str] = {}
+    for canonical, alternatives in aliases.items():
+        if canonical not in frame.columns:
+            alias = next((name for name in alternatives if name in frame.columns), None)
+            if alias is not None:
+                renamed[alias] = canonical
+    return frame.rename(columns=renamed)
 
 
-def _effect_formula(
-    effects: Sequence[str | Effect], actor_attributes: pd.DataFrame | None
-) -> Formula:
+def _attribute_names(attributes: str | Sequence[str] | None) -> tuple[str, ...]:
+    if attributes is None:
+        return ()
+    if isinstance(attributes, str):
+        return (attributes,)
+    return tuple(attributes)
+
+
+def _effect_formula(effects: Sequence[str | Effect]) -> Formula:
     terms: list[Effect] = []
     for requested in effects:
         if isinstance(requested, Effect):
             terms.append(requested)
-        elif requested == "stance_similarity":
-            if actor_attributes is None:
-                raise ValueError("stance_similarity requires a stance column in events")
-            terms.append(same("stance", attr_actors=actor_attributes))
         elif requested in _EFFECT_ALIASES:
             terms.append(_EFFECT_ALIASES[requested]())
         else:
@@ -414,16 +317,11 @@ def _next_time(values: pd.Series) -> Any:
     return timestamp + pd.Timedelta(seconds=1)
 
 
-def _reachable_actors(source: Any, adjacency: dict[Any, set[Any]]) -> set[Any]:
-    reached: set[Any] = set()
-    frontier = list(adjacency.get(source, set()))
-    while frontier:
-        actor = frontier.pop()
-        if actor == source or actor in reached:
-            continue
-        reached.add(actor)
-        frontier.extend(adjacency.get(actor, set()).difference(reached))
-    return reached
+def _representative_value(values: pd.Series, *, first: bool) -> Any:
+    available = values.dropna()
+    if available.empty:
+        return np.nan
+    return available.iloc[0 if first else -1]
 
 
 __all__ = ["RelationalEventModel"]

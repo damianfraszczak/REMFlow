@@ -21,6 +21,7 @@ def test_public_exports_are_unique_and_core_workflow_is_present():
         "remstimate",
         "diagnostics",
         "RelationalEventModel",
+        "MisinformationModel",
         "inertia",
         "reciprocity",
         "otp",

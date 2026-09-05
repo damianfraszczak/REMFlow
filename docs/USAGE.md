@@ -226,10 +226,44 @@ paths use JAX float64. `riskset_chunk_size` limits device memory use for the
 supported JAX tie, actor, and unpenalized ordinal-duration paths. Benchmark
 reports separate compilation from steady-state execution.
 
-## Misinformation analysis
+## High-level relational event model
+
+`RelationalEventModel` is a general convenience facade over `remify`,
+`remstats`, and `remstimate`. Three-field tuples represent untyped events; a
+fourth field represents the event type. Data frames can instead name a custom
+type column with `event_type`.
 
 ```python
 from remflow import RelationalEventModel
+
+events = [
+    (1.0, "A", "B"),
+    (2.0, "B", "C"),
+    (3.0, "A", "C"),
+]
+
+model = RelationalEventModel(
+    effects=("reciprocity", "sender_activity"),
+    ordinal=True,
+).fit(events)
+
+print(model.summary())
+print(model.predict_next_events())
+```
+
+For typed data-frame input, pass for example `event_type="channel"` and, when
+needed, `event_attributes=("sentiment",)`. The facade expands the risk set by
+type automatically when multiple types are observed; set
+`extend_riskset_by_type` explicitly to override that behavior.
+
+## Misinformation analysis
+
+`MisinformationModel` inherits the general fitting, summary, and prediction
+workflow from `RelationalEventModel`. It adds the positional `action` and
+`stance` convention and the domain-specific analyses below.
+
+```python
+from remflow import MisinformationModel
 
 events = [
     (1.2, "u1", "u5", "retweet", "support"),
@@ -237,7 +271,7 @@ events = [
     (2.1, "u2", "u5", "mention", "question"),
 ]
 
-model = RelationalEventModel(
+model = MisinformationModel(
     effects=("reciprocity", "sender_activity", "receiver_popularity"),
     ordinal=True,
 ).fit(events)

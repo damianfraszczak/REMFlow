@@ -36,6 +36,7 @@ from remflow.history import (
     is_remify_durem,
     remify,
 )
+from remflow.misinformation import MisinformationModel
 from remflow.model import RelationalEventModel
 from remflow.stats import (
     AomStats,
@@ -123,6 +124,7 @@ __all__ = [
     "available_backends",
     "resolve_backend",
     "RelationalEventModel",
+    "MisinformationModel",
     "EventHistory",
     "DurationHistory",
     "Remify",

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "remflow"
-version = "0.1.0"
+version = "0.1.1"
 description = "Relational event models for ordered sender-receiver data in Python."
 readme = "README.md"
 license = "MIT"

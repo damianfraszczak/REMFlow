@@ -164,13 +164,20 @@ Backend selection
 
 .. autoexception:: remflow.BackendUnavailable
 
-Misinformation workflow
------------------------
+High-level models
+-----------------
 
-:class:`RelationalEventModel` provides the high-level typed-event workflow for
-next-event ranking, descriptive actor roles, echo-chamber trajectories, and
-conditional actor-blocking interventions. These outputs are descriptive and
-predictive; they are not causal source-identification results.
+:class:`RelationalEventModel` provides a general high-level workflow for
+untyped and typed tie-oriented events, fitting, summaries, and next-event
+ranking.
 
 .. autoclass:: remflow.RelationalEventModel
-   :members: fit, summary, predict_next_events, actor_roles, detect_sources, echo_chamber_metrics, simulate_intervention
+   :members: fit, summary, predict_next_events
+
+:class:`MisinformationModel` inherits that workflow and adds action and stance
+conventions, descriptive actor roles, echo-chamber trajectories, source
+ranking, and conditional actor-blocking interventions. These outputs are
+descriptive and predictive; they are not causal source-identification results.
+
+.. autoclass:: remflow.MisinformationModel
+   :members: actor_roles, detect_sources, echo_chamber_metrics, simulate_intervention

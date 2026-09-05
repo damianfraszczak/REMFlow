@@ -1,6 +1,6 @@
 """End-to-end misinformation propagation example."""
 
-from remflow import RelationalEventModel
+from remflow import MisinformationModel
 
 events = [
     (1.2, "u1", "u5", "retweet", "support"),
@@ -10,7 +10,7 @@ events = [
     (3.4, "u5", "u2", "reply", "deny"),
 ]
 
-model = RelationalEventModel(
+model = MisinformationModel(
     effects=(
         "reciprocity",
         "sender_activity",

@@ -1,7 +1,8 @@
 import numpy as np
+import pandas as pd
 import pytest
 
-from remflow import RelationalEventModel
+from remflow import MisinformationModel, RelationalEventModel
 
 EVENTS = [
     (1.0, "u1", "u2", "retweet", "support"),
@@ -14,7 +15,7 @@ EVENTS = [
 
 
 def test_misinformation_facade_fits_predicts_and_reports_roles():
-    model = RelationalEventModel(
+    model = MisinformationModel(
         effects=(
             "reciprocity",
             "sender_activity",
@@ -49,7 +50,7 @@ def test_misinformation_facade_fits_predicts_and_reports_roles():
 
 
 def test_intervention_removes_probability_mass_and_renormalizes():
-    model = RelationalEventModel(effects=("reciprocity",), ordinal=True).fit(EVENTS)
+    model = MisinformationModel(effects=("reciprocity",), ordinal=True).fit(EVENTS)
 
     result = model.simulate_intervention(blocked_actors=["u1"])
 
@@ -64,13 +65,51 @@ def test_facade_validates_fit_state_effects_and_tuple_shape():
     with pytest.raises(RuntimeError, match="fit must be called"):
         model.predict_next_events()
     with pytest.raises(ValueError, match="unknown high-level effect"):
-        RelationalEventModel(effects=("not_an_effect",)).fit(EVENTS)
-    with pytest.raises(ValueError, match="3-5 fields"):
+        RelationalEventModel(effects=("not_an_effect",)).fit([row[:3] for row in EVENTS])
+    with pytest.raises(ValueError, match="3 or 4 fields"):
         RelationalEventModel().fit([(1, "a")])
 
 
+def test_general_model_supports_untyped_and_typed_events():
+    untyped = RelationalEventModel(effects=("reciprocity",), ordinal=True).fit(
+        [row[:3] for row in EVENTS]
+    )
+    typed = RelationalEventModel(effects=("reciprocity",), ordinal=True).fit(
+        [row[:4] for row in EVENTS]
+    )
+
+    assert isinstance(typed, RelationalEventModel)
+    assert issubclass(MisinformationModel, RelationalEventModel)
+    assert "event_type" not in untyped.predict_next_events(top_k=100)
+    assert "event_type" in typed.predict_next_events(top_k=100)
+    assert not hasattr(RelationalEventModel, "echo_chamber_metrics")
+
+
+def test_general_model_accepts_named_type_and_attribute_columns():
+    events = pd.DataFrame(
+        {
+            "time": range(1, 7),
+            "sender": ["a", "b", "a", "c", "b", "c"],
+            "receiver": ["b", "c", "c", "a", "a", "b"],
+            "channel": ["chat", "email", "chat", "email", "chat", "email"],
+            "sentiment": [1.0, -1.0, 0.0, 1.0, -1.0, 0.0],
+        }
+    )
+
+    model = RelationalEventModel(
+        effects=("reciprocity",),
+        event_type="channel",
+        event_attributes="sentiment",
+        ordinal=True,
+    ).fit(events)
+
+    assert model.history_ is not None
+    assert "sentiment" in model.history_.events
+    assert "event_type" in model.predict_next_events(top_k=100)
+
+
 def test_source_detection_and_echo_chamber_trajectory_are_transparent():
-    model = RelationalEventModel(effects=("reciprocity",), ordinal=True).fit(EVENTS)
+    model = MisinformationModel(effects=("reciprocity",), ordinal=True).fit(EVENTS)
 
     sources = model.detect_sources(top_k=2)
     echo = model.echo_chamber_metrics()
@@ -86,7 +125,7 @@ def test_source_detection_and_echo_chamber_trajectory_are_transparent():
 
 def test_echo_chamber_metrics_require_stance_data():
     events_without_stance = [row[:4] for row in EVENTS]
-    model = RelationalEventModel(effects=("reciprocity",), ordinal=True).fit(
+    model = MisinformationModel(effects=("reciprocity",), ordinal=True).fit(
         events_without_stance
     )
 
