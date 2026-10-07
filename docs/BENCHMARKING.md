@@ -12,6 +12,24 @@ timing without that context is not useful for comparing runs.
 | Medium | 50 | 1,000 | 2,450 | 74.77 MiB |
 | Large | 100 | 1,000 | 9,900 | 302.12 MiB |
 
+For a full directed, type-expanded risk set with `C` candidate event types and
+`K` float64 statistics, the dense statistic storage alone is approximately:
+
+```text
+8 * events * actors * (actors - 1) * C * K bytes
+```
+
+For four untyped statistics, 500 actors and 1,000 events require about 7.44
+GiB, while 100 actors and 25,000 events require about 7.38 GiB. These values do
+not include risk-set DataFrames, derivative arrays, optimizer work space, or
+device copies, so they are already beyond a practical 8 GiB process budget.
+
+Tie case-control sampling reduces the retained design matrix and repeated
+likelihood work. In the current implementation it is applied after the full
+event-specific statistics have been calculated, so it does not remove the
+full risk-set and statistic-construction peak. JAX risk-set chunking similarly
+limits supported device computations, not preprocessing storage.
+
 ## What a result records
 
 Committed benchmark results include:

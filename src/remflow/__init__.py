@@ -38,6 +38,13 @@ from remflow.history import (
 )
 from remflow.misinformation import MisinformationModel
 from remflow.model import RelationalEventModel
+from remflow.plotting import (
+    plot_coefficients,
+    plot_diagnostics,
+    plot_event_history,
+    plot_statistic,
+)
+from remflow.reporting import coefficient_table, diagnostic_table, fit_table
 from remflow.stats import (
     AomStats,
     Effect,
@@ -125,6 +132,13 @@ __all__ = [
     "resolve_backend",
     "RelationalEventModel",
     "MisinformationModel",
+    "coefficient_table",
+    "fit_table",
+    "diagnostic_table",
+    "plot_event_history",
+    "plot_statistic",
+    "plot_coefficients",
+    "plot_diagnostics",
     "EventHistory",
     "DurationHistory",
     "Remify",

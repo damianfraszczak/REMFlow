@@ -88,6 +88,47 @@ fit = remstimate(history, stats, backend="numpy")
 print(fit.summary())
 ```
 
+## Readable tables and plots
+
+The low-level `summary()` methods return dictionaries so downstream code can
+consume stable keys. For terminal output, reports, and notebooks, the public
+reporting helpers return compact pandas tables:
+
+```python
+from remflow import coefficient_table, diagnostic_table, diagnostics, fit_table
+
+report = diagnostics(fit, history, stats)
+print(coefficient_table(fit).to_string(index=False))
+print(fit_table(fit).to_string(index=False))
+print(diagnostic_table(report).to_string(index=False))
+```
+
+Install `remflow[plot]` to add the optional Matplotlib dependency. The plotting
+helpers return the Matplotlib figure and axes, so callers can change labels or
+save publication-ready output:
+
+```python
+from remflow import (
+    plot_coefficients,
+    plot_diagnostics,
+    plot_event_history,
+    plot_statistic,
+)
+
+history_figure, _ = plot_event_history(history)
+statistic_figure, _ = plot_statistic(stats, "reciprocity")
+coefficient_figure, _ = plot_coefficients(fit)
+diagnostic_figure, _ = plot_diagnostics(report)
+
+diagnostic_figure.savefig("remflow-diagnostics.png", dpi=300)
+```
+
+The history plot shows the sequence of sender-to-receiver events. The
+coefficient plot displays normal-approximation intervals where covariance is
+available. The diagnostic plot shows the probability and relative rank of each
+observed event; lower relative ranks indicate that the fitted model placed the
+observed event near the top of its risk set.
+
 `engine="auto"` currently selects SciPy. Use `engine="scipy"` to make that
 choice explicit. The separate `backend` argument controls NumPy or JAX
 evaluation of the objective and derivatives.

@@ -40,6 +40,23 @@ serialization.
    fit = remstimate(history, statistics, backend="numpy")
    report = diagnostics(fit, history, statistics)
 
+Readable reporting and plotting
+-------------------------------
+
+The reporting helpers convert fitted results and diagnostics into pandas
+tables. Plotting is an optional Matplotlib feature installed with
+``pip install remflow[plot]``.
+
+.. autosummary::
+
+   remflow.coefficient_table
+   remflow.fit_table
+   remflow.diagnostic_table
+   remflow.plot_event_history
+   remflow.plot_statistic
+   remflow.plot_coefficients
+   remflow.plot_diagnostics
+
 Event histories and risk sets
 -----------------------------
 
