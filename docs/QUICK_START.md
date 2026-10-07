@@ -19,11 +19,21 @@ The appropriate JAX CUDA build still depends on the operating system, driver,
 and CUDA installation. Follow the JAX installation instructions before using
 `backend="jax:gpu"`.
 
+Matplotlib plots are also optional and are not included in the default install.
+To generate figures, install the plotting extra:
+
+```bash
+python -m pip install "remflow[plot]"
+```
+
 A source checkout is needed only for development. In that case, use:
 
 ```bash
 python -m pip install -e ".[dev,docs]"
 ```
+
+For a source checkout that also needs plots, use
+`python -m pip install -e ".[dev,docs,plot]"` (or `-e ".[plot]"` for just the example).
 
 ## Fit a model
 

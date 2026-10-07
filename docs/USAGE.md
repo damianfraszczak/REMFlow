@@ -103,9 +103,15 @@ print(fit_table(fit).to_string(index=False))
 print(diagnostic_table(report).to_string(index=False))
 ```
 
-Install `remflow[plot]` to add the optional Matplotlib dependency. The plotting
-helpers return the Matplotlib figure and axes, so callers can change labels or
-save publication-ready output:
+Plotting is not part of the default installation. Install the optional
+Matplotlib extra to enable it:
+
+```bash
+python -m pip install "remflow[plot]"
+```
+
+The plotting helpers return the Matplotlib figure and axes, so callers can
+change labels or save publication-ready output:
 
 ```python
 from remflow import (

@@ -41,11 +41,16 @@ python -m pip install "remflow[gpu]"
 ```
 
 Readable result tables require no extra dependency. Basic graphical output is
-available through an optional Matplotlib extra:
+not installed by default. Enable it with the optional Matplotlib extra:
 
 ```bash
 python -m pip install "remflow[plot]"
 ```
+
+When running examples from a source checkout, use
+`python -m pip install -e ".[plot]"` instead.
+The [classroom example](docs/CLASSROOM_EVENT_STUDY.md) generates a
+[two-panel figure](examples/classroom_diagnostics.svg) with `--plot`.
 
 For GPU use, install the JAX build appropriate for the local CUDA setup. An
 explicit `backend="jax:gpu"` request fails with `BackendUnavailable` if JAX
@@ -69,8 +74,6 @@ from remflow import (
     coefficient_table,
     diagnostic_table,
     diagnostics,
-    plot_coefficients,
-    plot_diagnostics,
     remify,
     remstats,
     remstimate,
@@ -95,8 +98,13 @@ report = diagnostics(fit, history, statistics)
 
 print(coefficient_table(fit).to_string(index=False))
 print(diagnostic_table(report).to_string(index=False))
+```
 
-# Optional Matplotlib figures
+After installing the optional `plot` extra, generate Matplotlib figures:
+
+```python
+from remflow import plot_coefficients, plot_diagnostics
+
 coefficient_figure, _ = plot_coefficients(fit)
 diagnostic_figure, _ = plot_diagnostics(report)
 ```

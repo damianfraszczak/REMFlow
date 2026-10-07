@@ -38,6 +38,21 @@ PYTHONPATH=src python examples/classroom_event_study.py
 PYTHONPATH=src python examples/classroom_event_study.py --timing exact
 ```
 
+To use plotting with this example, install the optional Matplotlib dependency.
+The `--plot` option saves a two-panel figure with full-model coefficients and
+95% intervals alongside in-sample event rankings for both days:
+
+```bash
+python -m pip install -e ".[plot]"
+PYTHONPATH=src python examples/classroom_event_study.py --timing exact --plot examples/classroom_diagnostics.svg
+```
+
+The same command works in PowerShell without the `PYTHONPATH=src` prefix after
+the editable install. `--plot` alone writes `classroom_diagnostics.png` in the
+current directory. Plotting works with both `--timing exact` and the default
+ordinal mode. The console output includes BIC for all eight fits, plus
+full-model coefficients and in-sample diagnostics for each day.
+
 In Windows PowerShell:
 
 ```powershell

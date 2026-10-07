@@ -1,10 +1,19 @@
 from dataclasses import replace
+from importlib.util import find_spec
+from pathlib import Path
+from types import SimpleNamespace
+
+import numpy as np
+import pandas as pd
+import pytest
 
 from examples.classroom_event_study import (
+    PLOTTED_TERMS,
     build_classroom_stats,
     build_history,
     fit_study_model,
     load_classroom_data,
+    save_classroom_plot,
     study_model_terms,
 )
 from remflow import RemEstimate, remstimate
@@ -54,3 +63,28 @@ def test_classroom_exact_time_partial_model_estimates():
     assert fit.converged
     assert fit.ordinal is False
     assert fit.names == ["Intercept", "Sender_male", "Receiver_male", "Seating", "Friendship"]
+
+
+@pytest.mark.skipif(find_spec("matplotlib") is None, reason="optional plotting dependency missing")
+def test_classroom_figure_contains_coefficient_and_rank_panels(tmp_path: Path):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    frame = pd.DataFrame(
+        {
+            "effect": PLOTTED_TERMS,
+            "estimate": np.arange(len(PLOTTED_TERMS), dtype=float) / 10,
+            "std_error": np.full(len(PLOTTED_TERMS), 0.1),
+        }
+    )
+    report = SimpleNamespace(
+        ranks=np.array([1, 1, 3, 2]), recall={"summary": {"top_pct_prop": 0.75}}
+    )
+    output = tmp_path / "figure" / "classroom_diagnostics.svg"
+
+    save_classroom_plot({"date1": (frame, report), "date2": (frame, report)}, output, ordinal=False)
+
+    svg = output.read_text(encoding="utf-8")
+    assert "Conditional log-hazard coefficient" in svg
+    assert "In-sample event ranking" in svg
+    assert "PSAB_BA" in svg

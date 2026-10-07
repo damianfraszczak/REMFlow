@@ -44,8 +44,8 @@ Readable reporting and plotting
 -------------------------------
 
 The reporting helpers convert fitted results and diagnostics into pandas
-tables. Plotting is an optional Matplotlib feature installed with
-``pip install remflow[plot]``.
+tables. Plotting is not installed by default; enable the optional Matplotlib
+feature with ``python -m pip install "remflow[plot]"``.
 
 .. autosummary::
 

@@ -2,7 +2,8 @@
 
 Source provenance, licensing, and the comparison boundary are documented in
 ``docs/CLASSROOM_EVENT_STUDY.md``. This example runs exact-time and ordinal
-REMFlow models over the documented classroom histories.
+REMFlow models over the documented classroom histories. Pass ``--plot`` to
+save a figure of full-model coefficients and in-sample event rankings.
 """
 
 from __future__ import annotations
@@ -15,11 +16,31 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from remflow import RemEstimate, RemStats, remify, remstimate
+from remflow import (
+    Diagnostics,
+    RemEstimate,
+    RemStats,
+    coefficient_table,
+    diagnostic_table,
+    diagnostics,
+    fit_table,
+    remify,
+    remstimate,
+)
 from remflow.stats import Effect, Formula, observed_risk_index
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data" / "classroom_events"
+PLOTTED_TERMS = (
+    "Recency_ji",
+    "Recency_ij",
+    "Receiver_teacher",
+    "Seating",
+    "Friendship",
+    "PSAB_BA",
+    "PSAB_BY",
+    "PSAB_XB",
+)
 
 
 @dataclass(frozen=True)
@@ -178,10 +199,17 @@ def study_model_terms(model: str) -> list[str]:
     return models[model]
 
 
-def run_appendix(*, ordinal: bool = True, backend: str = "numpy") -> pd.DataFrame:
+def run_appendix(
+    *,
+    ordinal: bool = True,
+    backend: str = "numpy",
+    plot_path: Path | None = None,
+    full_model_outputs: dict[str, tuple[pd.DataFrame, Diagnostics]] | None = None,
+) -> pd.DataFrame:
     """Fit selected model families for both classroom dates."""
 
     rows = []
+    plot_data: dict[str, tuple[pd.DataFrame, Diagnostics]] = {}
     for date_label in ("date1", "date2"):
         for model in ("mod1", "mod2a", "mod3b", "mod4f"):
             data, fit = fit_study_model(
@@ -190,6 +218,14 @@ def run_appendix(*, ordinal: bool = True, backend: str = "numpy") -> pd.DataFram
                 ordinal=ordinal,
                 backend=backend,
             )
+            if model == "mod4f" and (plot_path is not None or full_model_outputs is not None):
+                history = build_history(data, ordinal=ordinal)
+                stats = build_classroom_stats(history, data, terms=fit.names)
+                plot_data[date_label] = (
+                    coefficient_table(fit, digits=None),
+                    diagnostics(fit, history, stats),
+                )
+            fit_summary = fit_table(fit, digits=None).iloc[0]
             rows.append(
                 {
                     "date": date_label,
@@ -199,10 +235,93 @@ def run_appendix(*, ordinal: bool = True, backend: str = "numpy") -> pd.DataFram
                     "terms": len(fit.names),
                     "timing": "ordinal" if ordinal else "exact",
                     "log_likelihood": fit.log_likelihood,
+                    "BIC": fit_summary["BIC"],
                     "converged": fit.converged,
                 }
             )
+    if full_model_outputs is not None:
+        full_model_outputs.update(plot_data)
+    if plot_path is not None:
+        save_classroom_plot(plot_data, plot_path, ordinal=ordinal)
     return pd.DataFrame(rows)
+
+
+def save_classroom_plot(
+    plot_data: dict[str, tuple[pd.DataFrame, Diagnostics]],
+    output: Path,
+    *,
+    ordinal: bool,
+) -> None:
+    """Save full-model coefficient and in-sample rank panels."""
+
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as exc:
+        raise ImportError(
+            "Plotting requires Matplotlib. Install it with `pip install remflow[plot]`."
+        ) from exc
+
+    colors = {"date1": "#0072B2", "date2": "#D55E00"}
+    figure, axes = plt.subplots(
+        1,
+        2,
+        figsize=(11.2, 5.5),
+        gridspec_kw={"width_ratios": [1.55, 1.0]},
+        constrained_layout=True,
+    )
+    try:
+        positions = np.arange(len(PLOTTED_TERMS), dtype=float)
+        for date_label, label, offset in (("date1", "Day 1", -0.12), ("date2", "Day 2", 0.12)):
+            frame, _ = plot_data[date_label]
+            selected = frame.set_index("effect").loc[list(PLOTTED_TERMS)]
+            errors = 1.96 * selected["std_error"].to_numpy(dtype=float)
+            axes[0].errorbar(
+                selected["estimate"],
+                positions + offset,
+                xerr=errors,
+                fmt="o",
+                color=colors[date_label],
+                ecolor=colors[date_label],
+                capsize=3,
+                label=label,
+            )
+        axes[0].axvline(0.0, color="#6B7280", linewidth=1.0, linestyle="--")
+        axes[0].set_yticks(positions, PLOTTED_TERMS)
+        axes[0].invert_yaxis()
+        scale = "log-odds" if ordinal else "log-hazard"
+        axes[0].set_xlabel(f"Conditional {scale} coefficient (95% interval)")
+        axes[0].set_title("a) Full-model estimates")
+        axes[0].grid(axis="x", color="#D9E2E8", linewidth=0.7)
+        axes[0].legend(frameon=False)
+
+        positions = np.arange(2, dtype=float)
+        width = 0.34
+        for index, (date_label, label) in enumerate((("date1", "Day 1"), ("date2", "Day 2"))):
+            _, report = plot_data[date_label]
+            values = [
+                float(np.mean(report.ranks == 1)),
+                float(report.recall["summary"]["top_pct_prop"]),
+            ]
+            bars = axes[1].bar(
+                positions + (index - 0.5) * width,
+                values,
+                width,
+                color=colors[date_label],
+                label=label,
+            )
+            axes[1].bar_label(bars, labels=[f"{value:.1%}" for value in values], padding=3)
+        axes[1].set_xticks(positions, ["Rank 1", "Top 10%"])
+        axes[1].set_ylim(0.0, 1.0)
+        axes[1].set_ylabel("Share of observed events")
+        axes[1].set_title("b) In-sample event ranking")
+        axes[1].grid(axis="y", color="#D9E2E8", linewidth=0.7)
+        axes[1].legend(frameon=False)
+        figure.suptitle("Classroom example: estimates and diagnostic output", fontsize=14)
+
+        output.parent.mkdir(parents=True, exist_ok=True)
+        figure.savefig(output, dpi=300, facecolor="white")
+    finally:
+        plt.close(figure)
 
 
 def _read_table(path: Path) -> pd.DataFrame:
@@ -305,9 +424,30 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--timing", choices=("ordinal", "exact"), default="ordinal")
     parser.add_argument("--backend", default="numpy")
+    parser.add_argument(
+        "--plot",
+        nargs="?",
+        const="classroom_diagnostics.png",
+        metavar="PATH",
+        help="save the coefficient and ranking figure (default: classroom_diagnostics.png)",
+    )
     args = parser.parse_args()
-    summary = run_appendix(ordinal=args.timing == "ordinal", backend=args.backend)
+    plot_path = Path(args.plot) if args.plot is not None else None
+    full_models: dict[str, tuple[pd.DataFrame, Diagnostics]] = {}
+    summary = run_appendix(
+        ordinal=args.timing == "ordinal",
+        backend=args.backend,
+        plot_path=plot_path,
+        full_model_outputs=full_models,
+    )
     print(summary.to_string(index=False))
+    for date_label, (coefficients, report) in full_models.items():
+        print(f"\n{date_label} full-model coefficients:")
+        print(coefficients.to_string(index=False))
+        print(f"\n{date_label} in-sample diagnostics:")
+        print(diagnostic_table(report, digits=None).to_string(index=False))
+    if plot_path is not None:
+        print(f"Saved classroom plot to {plot_path}")
 
 
 if __name__ == "__main__":

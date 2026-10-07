@@ -16,8 +16,8 @@ Install the released ``remflow`` package from PyPI:
 
    python -m pip install remflow
 
-A source checkout is required only for development. See the
-:doc:`QUICK_START` page for optional JAX installation and development setup.
+A source checkout is required only for development. JAX and Matplotlib plots
+are optional extras; see :doc:`QUICK_START` for installation instructions.
 
 .. toctree::
    :maxdepth: 2
