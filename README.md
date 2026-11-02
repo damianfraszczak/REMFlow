@@ -1,5 +1,26 @@
 # REMFlow: relational event modeling in Python
 
+<p align="center">
+  <a href="https://pypi.org/project/remflow/">
+    <img alt="Python 3.11 or newer" src="https://img.shields.io/badge/python-%3E%3D3.11-blue?logo=python&amp;logoColor=white">
+  </a>
+  <a href="https://pypistats.org/packages/remflow">
+    <img alt="PyPI downloads per month" src="https://img.shields.io/pypi/dm/remflow.svg">
+  </a>
+  <a href="https://pepy.tech/projects/remflow">
+    <img alt="Total downloads" src="https://static.pepy.tech/badge/remflow">
+  </a>
+  <a href="https://github.com/damianfraszczak/REMFlow/blob/master/LICENSE">
+    <img alt="MIT license" src="https://img.shields.io/github/license/damianfraszczak/REMFlow.svg">
+  </a>
+  <a href="https://remflow.readthedocs.io/en/stable/">
+    <img alt="Documentation build status" src="https://readthedocs.org/projects/remflow/badge/?version=stable">
+  </a>
+  <a href="https://github.com/damianfraszczak/REMFlow/actions/workflows/ci.yml">
+    <img alt="Continuous integration status" src="https://github.com/damianfraszczak/REMFlow/actions/workflows/ci.yml/badge.svg?branch=master">
+  </a>
+</p>
+
 REMFlow implements relational event models (REMs) for ordered sender-receiver
 interactions. For each observed event, it constructs the set of events that
 could have occurred and evaluates time-varying network statistics for the
@@ -220,6 +241,22 @@ uv run python -m sphinx -W --keep-going -b html docs docs/_build/html
 The physical-GPU tests run only when compatible hardware is available and
 `REMFLOW_REQUIRE_GPU=1` is set.
 
+## Numerical validation
+
+The [`validation/`](validation/README.md) directory contains executable Python and R
+scripts for comparing eight classroom fits and one simulated history with
+`relevent`, independently checking their statistics, and measuring complete
+fitting time and process peak memory. Its README documents the commands,
+dependencies, comparison tolerances, and limits of the validation.
+
+Recorded results are retained in [`validation/reference_results/`](validation/reference_results/);
+new executions write to a separate ignored directory. The classroom comparisons
+meet the documented tolerances. The simulation has a separated parameter, which
+is explicitly reported rather than treated as a passed coefficient comparison.
+Resource measurements distinguish the current CPU fitting routine from a
+separately compiled JAX kernel. The recorded focused test run has 50 passes and
+four GPU skips; it is not a full-suite CI result.
+
 ## Documentation
 
 - [Source repository](https://github.com/damianfraszczak/REMFlow)
@@ -230,6 +267,7 @@ The physical-GPU tests run only when compatible hardware is available and
 - [API reference](docs/api.rst)
 - [Performance evaluation](docs/BENCHMARKING.md)
 - [Classroom event study](docs/CLASSROOM_EVENT_STUDY.md)
+- [Numerical validation, R comparisons, and fitting-cost measurements](validation/README.md)
 
 ## License
 

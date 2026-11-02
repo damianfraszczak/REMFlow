@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-01",
+  "passed": 50,
+  "skipped": 4,
+  "failed": 0,
+  "seconds": 84.95,
+  "scope": "Focused suite, not the complete CI suite",
+  "coverage": {
+    "covered_lines": 2984,
+    "num_statements": 6845,
+    "percent_covered": 43.593864134404676,
+    "percent_covered_display": "44",
+    "missing_lines": 3861,
+    "excluded_lines": 38,
+    "percent_statements_covered": 43.593864134404676,
+    "percent_statements_covered_display": "44"
+  }
+}
